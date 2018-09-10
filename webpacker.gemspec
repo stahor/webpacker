@@ -6,11 +6,16 @@ Gem::Specification.new do |s|
   s.version  = Webpacker::VERSION
   s.authors  = [ "David Heinemeier Hansson", "Gaurav Tiwari" ]
   s.email    = [ "david@basecamp.com", "gaurav@gauravtiwari.co.uk" ]
-  s.summary  = "Use Webpack to manage app-like JavaScript modules in Rails"
+  s.summary  = "Use webpack to manage app-like JavaScript modules in Rails"
   s.homepage = "https://github.com/rails/webpacker"
   s.license  = "MIT"
 
-  s.required_ruby_version = ">= 1.9.3"
+  s.metadata = {
+    "source_code_uri" => "https://github.com/rails/webpacker/tree/v#{Webpacker::VERSION}",
+    "changelog_uri"   => "https://github.com/rails/webpacker/blob/v#{Webpacker::VERSION}/CHANGELOG.md"
+  }
+
+  s.required_ruby_version = ">= 2.2.0"
 
   s.add_dependency "activesupport", ">= 4.0"
   s.add_dependency "railties",      ">= 4.0"

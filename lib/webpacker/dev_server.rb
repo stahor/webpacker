@@ -1,23 +1,32 @@
 class Webpacker::DevServer
   # Configure dev server connection timeout (in seconds), default: 0.01
-  # Webpacker.dev_server.connect_timeout = 1
-  mattr_accessor(:connect_timeout) { 0.01 }
+  # Webpacker.dev_server.connect_timeout = 1
+  cattr_accessor(:connect_timeout) { 0.01 }
 
-  delegate :config, to: :@webpacker
+  attr_reader :config
 
-  def initialize(webpacker)
-    @webpacker = webpacker
+  def initialize(config)
+    @config = config
   end
 
   def running?
-    Socket.tcp(host, port, connect_timeout: connect_timeout).close
-    true
-  rescue Errno::ECONNREFUSED, Errno::ETIMEDOUT, NoMethodError
+    if config.dev_server.present?
+      Socket.tcp(host, port, connect_timeout: connect_timeout).close
+      true
+    else
+      false
+    end
+  rescue
     false
   end
 
   def hot_module_replacing?
-    fetch(:hmr)
+    case fetch(:hmr)
+    when true, "true"
+      true
+    else
+      false
+    end
   end
 
   def host
@@ -29,7 +38,12 @@ class Webpacker::DevServer
   end
 
   def https?
-    fetch(:https)
+    case fetch(:https)
+    when true, "true"
+      true
+    else
+      false
+    end
   end
 
   def protocol
@@ -40,12 +54,16 @@ class Webpacker::DevServer
     "#{host}:#{port}"
   end
 
+  def pretty?
+    fetch(:pretty)
+  end
+
   private
     def fetch(key)
-      config.dev_server.fetch(key, defaults[key])
+      ENV["WEBPACKER_DEV_SERVER_#{key.upcase}"] || config.dev_server.fetch(key, defaults[key])
     end
 
     def defaults
-      config.send(:defaults)[:dev_server]
+      config.send(:defaults)[:dev_server] || {}
     end
 end

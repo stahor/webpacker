@@ -2,15 +2,20 @@ require "rack/proxy"
 
 class Webpacker::DevServerProxy < Rack::Proxy
   def rewrite_response(response)
-    status, headers, body = response
+    _status, headers, _body = response
     headers.delete "transfer-encoding"
     headers.delete "content-length" if Webpacker.dev_server.running? && Webpacker.dev_server.https?
     response
   end
 
   def perform_request(env)
-    if env["PATH_INFO"] =~ /#{public_output_uri_path}/ && Webpacker.dev_server.running?
+    if env["PATH_INFO"].start_with?("/#{public_output_uri_path}") && Webpacker.dev_server.running?
       env["HTTP_HOST"] = env["HTTP_X_FORWARDED_HOST"] = env["HTTP_X_FORWARDED_SERVER"] = Webpacker.dev_server.host_with_port
+      env["HTTP_X_FORWARDED_PROTO"] = env["HTTP_X_FORWARDED_SCHEME"] = Webpacker.dev_server.protocol
+      unless Webpacker.dev_server.https?
+        env["HTTPS"] = env["HTTP_X_FORWARDED_SSL"] = "off"
+      end
+      env["SCRIPT_NAME"] = ""
 
       super(env)
     else
